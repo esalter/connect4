@@ -4,9 +4,16 @@ function populateGame(data) {
         console.log(data);
         data.forEach(function(rows) {
             var tr = $('<tr></tr>');
-            rows.forEach(function(column) {
-               var td = $('<td>' + column + '</td>');
+            var i = 0;
+            rows.forEach(function(player) {
+                var color = '';
+                if (player) {
+                    color = player == 1 ? 'red' : 'blue';
+                }
+
+                var td = $('<td data-column="' + i + '"><div class="' + color + '"></div></td>');
                 tr.append(td);
+                i++;
             });
             table.append(tr);
         });
@@ -37,6 +44,18 @@ function prepareGame() {
             dataType: 'json'
         });
     });
+    $('table#gameTable td').click(function(el) {
+        var column = $(el).data('column');
+        $.ajax({
+            type: "POST",
+            url: '/game/5/move',
+            data: {
+                column: column
+            },
+            success: populateGame,
+            dataType: 'json'
+        });
+    })
 }
 
 $(document).ready(function() {
