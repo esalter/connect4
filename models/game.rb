@@ -3,7 +3,10 @@ class Game < ActiveRecord::Base
   after_initialize :create_state_data
   after_find :recreate_state
 
-
+  # sets a token in the game board.  if update_db is true,
+  # then also create the move in the db.
+  # useful if we are loading from the db and just want to
+  # reconstruct the game
   def place_token(player, column, update_db = true)
     if player == current_player
       # find the first free slot.
@@ -59,10 +62,12 @@ class Game < ActiveRecord::Base
   @initialized = false
   def create_state_data
 
+    # since after_find happens before after_initialization, and we need to cover
+    # the case where we are creating or finding a record, we need this
+    # check for if we've already initialized.
     if !@initialized
       @state = []
 
-      puts 'INIT STATE'
       @current_player = self.first_player
       self.rows.times do |i|
         @state.push([])
@@ -77,8 +82,9 @@ class Game < ActiveRecord::Base
   end
 
   def recreate_state
+    # need to initialize first
     create_state_data
-    puts 'RECREATE STATE'
+
     # walk through game by move and reconstitute the state of the game.
     self.moves.each do |row|
       self.place_token row.player, row.column, false
