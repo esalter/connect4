@@ -1,13 +1,12 @@
 class CreateModels < ActiveRecord::Migration
   def up
     create_table :games do |t|
+      t.string :difficulty
     end
     create_table :moves do |t|
       t.integer :game_id, :null => false, :references => [:games, :id]
-      t.integer :sequence
       t.integer :player
       t.integer :column
-      t.string :difficulty
     end
   end
 
