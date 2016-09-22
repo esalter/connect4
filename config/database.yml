@@ -1,6 +1,6 @@
 test:
   adapter: sqlite3
-  database: db/development.sqlite3
+  database: db/tests.sqlite
 development:
   adapter: sqlite3
-  database: db/development.sqlite3
+  database: db/development.sqlite
