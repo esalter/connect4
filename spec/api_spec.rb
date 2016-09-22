@@ -28,7 +28,8 @@ describe 'API' do
 
   it 'initial pageload should have one move if computer goes first' do
     post '/game', { difficulty: 'hard', first: false }
-    game = GameState.new(6, 7)
+
+    game = GameState.new(6, 7, 2)
     game.place_token(2, 3)
     expect(last_response.body).to eq(game.to_json)
   end

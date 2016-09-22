@@ -46,9 +46,10 @@ class Connect4 < Sinatra::Base
     param :difficulty, String, in: ["easy", "hard"], transform: :downcase, default: "easy"
     param :first, Boolean, default: true
 
-    game = GameState.new
+    first_player = params[:first] ? 1 : 2
+    game = GameState.new 6, 7, first_player
 
-    game.place_token 2, 3 unless params[:first]
+    game.place_token(2, 3) unless params[:first]
     json game
   end
 end
