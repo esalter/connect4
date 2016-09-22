@@ -38,7 +38,7 @@ class Connect4 < Sinatra::Base
   end
 
   post '/game' do
-    param :difficulty, String, in: ["easy", "hard"], transform: :downcase, default: "easy"
+    param :difficulty, String, in: ["easy", "hard", "random"], transform: :downcase, default: "easy"
     param :first_player, Integer, default: true
     param :rows, Integer, default: 6
     param :columns, Integer, default: 7
@@ -56,6 +56,20 @@ class Connect4 < Sinatra::Base
       game = Game.includes(:moves).find(params[:game_id])
 
       game.place_token 1, params[:column]
+
+      # now have the computer make a move.
+      case game.difficulty
+        when 'random'
+          game.place_token 2, rand(1...7)
+        when 'easy'
+          game.place_token 2, 1
+        when 'hard'
+          game.place_token 2, 3
+        else
+          status 400
+          json "errors": "unknown difficulty: " + game.difficulty
+          return
+        end
 
       json game
 
