@@ -1,8 +1,15 @@
 require 'sinatra/base'
 require 'sinatra/param'
-require 'json'
+#require 'json'
+require 'sinatra/json'
+require 'sinatra/activerecord'
+
+require './lib/game_state'
+require './models/game'
+require './models/move'
 
 class Connect4 < Sinatra::Base
+  register Sinatra::ActiveRecordExtension
   helpers Sinatra::Param
 
   before do
@@ -16,29 +23,32 @@ class Connect4 < Sinatra::Base
 
   get '/game/:id' do |id|
     param :id,        Integer
-    game = '[["","","","","","",""],["","","","","","",""],["","","","","","",""],["","","","","","",""],["","","","","","",""],["","","","","","",""]]'
+    begin
+      game = Game.find id, include: :moves
 
-    game
+      game_state = GameState.new
+
+      # walk through game by move
+      game.moves.each do |row|
+        game_state.place_token row.player, row.column
+      end
+
+      json game_state
+
+    rescue ActiveRecord::RecordNotFound
+      status 400
+      json "errors": "game not found"
+    end
+
   end
 
   post '/game' do
     param :difficulty, String, in: ["easy", "hard"], transform: :downcase, default: "easy"
     param :first, Boolean, default: true
 
-    game = []
-    (0..5).each do |i|
-      game.push([])
-      (0..6).each do |j|
-        val = ''
-        if i == 5 && j==3 && !params[:first]
-          val = 'X'
-        end
+    game = GameState.new
 
-        game[i].push(val)
-      end
-    end
-
-    game.to_json
+    game.place_token 2, 3 unless params[:first]
+    json game
   end
-
 end

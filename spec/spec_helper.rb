@@ -2,10 +2,10 @@
 require 'rack/test'
 require 'rspec'
 
-require 'simplecov'
-dir = "./reports/coverage"
-SimpleCov.coverage_dir(dir)
-SimpleCov.start
+#require 'simplecov'
+#dir = "./reports/coverage"
+#SimpleCov.coverage_dir(dir)
+#SimpleCov.start
 
 ENV['RACK_ENV'] = 'test'
 

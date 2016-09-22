@@ -1,0 +1,3 @@
+class MiniMax
+
+end

@@ -1,10 +1,20 @@
 function populateGame(data) {
-
+    if (data) {
+        var table = $('table#gameTable').empty();
+        console.log(data);
+        data.forEach(function(rows) {
+            var tr = $('<tr></tr>');
+            rows.forEach(function(column) {
+               var td = $('<td>' + column + '</td>');
+                tr.append(td);
+            });
+            table.append(tr);
+        });
+    }
 }
 
 function prepareGame() {
     $('#getGameById').click(function() {
-
         $.ajax({
             type: "GET",
             url: '/game/' + $('#gameId').val(),
@@ -16,8 +26,6 @@ function prepareGame() {
     $('#createNewGame').click(function() {
         var checked = $('#goFirst').is(':checked');
         var difficulty = $('#difficulty > option:selected').text();
-        console.log(checked);
-        console.log(difficulty);
         $.ajax({
             type: "POST",
             url: '/game',
