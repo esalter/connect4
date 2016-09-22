@@ -14,7 +14,7 @@ POST /game Creates a new game.
 ````
 
 GET /game/{:id} Gets a game with the given id at its current state.
-POST /game/move Creates a new move
+POST /game/{:id}/move Creates a new move for the given game
 ````
   {
     "column": [1-7]  // only one column allowed.  Must not be full (6 tall is full) and it must be your turn.  The response will include the computer's move.
