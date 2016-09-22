@@ -1,8 +1,9 @@
+var gameId = 0;
 function populateGame(data) {
-    if (data) {
+    if (data && data.state) {
+        gameId = data.game_id;
         var table = $('table#gameTable').empty();
-        console.log(data);
-        data.forEach(function(rows) {
+        data.state.forEach(function(rows) {
             var tr = $('<tr></tr>');
             var i = 0;
             rows.forEach(function(player) {
@@ -31,31 +32,35 @@ function prepareGame() {
     });
 
     $('#createNewGame').click(function() {
-        var checked = $('#goFirst').is(':checked');
-        var difficulty = $('#difficulty > option:selected').text();
+        var first_player = $('#firstPlayer > option:selected').val();
+        var difficulty = $('#difficulty > option:selected').val();
         $.ajax({
             type: "POST",
             url: '/game',
             data: {
-                first: checked,
+                first_player: first_player,
                 difficulty: difficulty
             },
             success: populateGame,
             dataType: 'json'
         });
     });
-    $('table#gameTable td').click(function(el) {
-        var column = $(el).data('column');
+
+    $('#gameTable').on('click', 'td', function() {
+        console.log('here')
+        var column = $(this).data('column');
+        console.log(column);
         $.ajax({
             type: "POST",
-            url: '/game/5/move',
+            url: '/game/' + gameId + '/move',
             data: {
                 column: column
             },
             success: populateGame,
             dataType: 'json'
         });
-    })
+        console.log( $( this ).text() );
+    });
 }
 
 $(document).ready(function() {

@@ -14,14 +14,16 @@
 ActiveRecord::Schema.define(version: 20160922044928) do
 
   create_table "games", force: :cascade do |t|
+    t.string  "difficulty",   null: false
+    t.integer "first_player", null: false
+    t.integer "rows",         null: false
+    t.integer "columns",      null: false
   end
 
   create_table "moves", force: :cascade do |t|
-    t.integer "game_id",    null: false
-    t.integer "sequence"
-    t.integer "player"
-    t.integer "column"
-    t.string  "difficulty"
+    t.integer "game_id", null: false
+    t.integer "player",  null: false
+    t.integer "column",  null: false
   end
 
 end
