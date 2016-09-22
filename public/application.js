@@ -21,11 +21,29 @@ function populateGame(data) {
     }
 }
 
+function populateGameList(id) {
+    var gameList = $('#gameId');
+    var newOption = '<option value="' + id + '">' + id + '</option>';
+    gameList.append(newOption);
+}
+
 function prepareGame() {
+    // load inital set of game ids
+    $.ajax({
+        type: "GET",
+        url: '/game',
+        success: function(ids) {
+            ids.forEach(function(i) {
+                populateGameList(i);
+            });
+        },
+        dataType: 'json'
+    });
+
     $('#getGameById').click(function() {
         $.ajax({
             type: "GET",
-            url: '/game/' + $('#gameId').val(),
+            url: '/game/' + $('#gameId > option:selected').val(),
             success: populateGame,
             dataType: 'json'
         });
@@ -41,15 +59,16 @@ function prepareGame() {
                 first_player: first_player,
                 difficulty: difficulty
             },
-            success: populateGame,
+            success: function(data) {
+                populateGame(data);
+                populateGameList(data.game_id);
+            },
             dataType: 'json'
         });
     });
 
     $('#gameTable').on('click', 'td', function() {
-        console.log('here')
         var column = $(this).data('column');
-        console.log(column);
         $.ajax({
             type: "POST",
             url: '/game/' + gameId + '/move',

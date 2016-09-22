@@ -28,3 +28,9 @@ Game state:
 a "move" consists of dropping a token into a column.  Players must alternate turns.  The token must drop in columns [1,7].  The token cannot be dropped into a column that is full (6 tall).
 
 A player wins when they manage to build a line of 4 of their tokens horizontally, vertically, or diagonally.
+
+
+## Things to do if I get time:
+- playback feature (fast backward, step back, step forward)
+- undo (delete my last move, also the computer's last move)
+- 

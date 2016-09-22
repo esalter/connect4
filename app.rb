@@ -20,6 +20,11 @@ class Connect4 < Sinatra::Base
     erb :index
   end
 
+  get '/game' do
+    games = Game.pluck(:id)
+    json games
+  end
+
   get '/game/:id' do |id|
     param :id,        Integer
     begin
@@ -54,9 +59,9 @@ class Connect4 < Sinatra::Base
 
       json game
 
-    #rescue ActiveRecord::RecordNotFound
-    #  status 400
-    #  json "errors": "game not found"
+    rescue ActiveRecord::RecordNotFound
+      status 400
+      json "errors": "game not found"
     end
   end
 end
