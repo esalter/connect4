@@ -1,6 +1,7 @@
 var gameId = 0;
 function populateGame(data) {
     if (data && data.state) {
+        $('#result').text('');
         gameId = data.game_id;
         var table = $('table#gameTable').empty();
         data.state.forEach(function(rows) {
@@ -20,10 +21,7 @@ function populateGame(data) {
         });
 
         if (data.winner) {
-            // delay a tiny bit so the board has a chance to draw before displaying the alert.
-            setTimeout(function() {
-                alert('Player ' + data.winner + ' won!');
-            }, 100);
+            $('#result').text('Player ' + data.winner + ' won!');
         }
     }
 }

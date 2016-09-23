@@ -11,7 +11,9 @@ class Game < ActiveRecord::Base
   # reconstruct the game
   def place_token(player, column, update_db = true)
     # ensure a winner hasn't been found yet
-    if @winner == nil
+    # we do need to use the getter (not the private var), because
+    # it might not be calculated even if the winner has been determined.
+    if winner == nil
       if player == current_player
         # find the first free slot.
         row = 0
@@ -70,7 +72,7 @@ class Game < ActiveRecord::Base
         @winner = find_win(0, 0)
       end
 
-      puts "Found result of game (win or lose) in #{time}"
+      # puts "Found result of game (win or lose) in #{time}"
     end
 
     @winner
@@ -79,7 +81,6 @@ class Game < ActiveRecord::Base
   protected
   @initialized = false
   def find_win(start_row, start_col)
-    puts "Testing point: #{start_row}, #{start_col}"
     # have we reached the end of the columns
     # checking horizontal win conditions
     if start_col >= self.columns

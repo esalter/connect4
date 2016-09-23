@@ -16,3 +16,8 @@ td div.red {
 td div.blue {
     background-color: blue;
 }
+div#result {
+    font-size:18px;
+    color: red;
+    font-weight: bold;
+}
