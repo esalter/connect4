@@ -69,10 +69,10 @@ class Game < ActiveRecord::Base
   def winner
     if @winner == nil
       time = Benchmark.measure do
-        @winner = find_win(0, 0)
+        @winner = find_win
       end
 
-      # puts "Found result of game (win or lose) in #{time}"
+      puts "Found result of game in #{time}"
     end
 
     @winner
@@ -80,25 +80,22 @@ class Game < ActiveRecord::Base
 
   protected
   @initialized = false
-  def find_win(start_row, start_col)
-    # have we reached the end of the columns
-    # checking horizontal win conditions
-    if start_col >= self.columns
-      return nil
-    end
-
-    # have we reached the end of the rows
-    # checking vertical win conditions
-    if start_row >= self.rows
-      return nil
-    end
+  def find_win
+    winner = nil
 
     # check win conditions, then recursion.
-    check_horizontal(start_row, start_col) ||
-        check_vertical(start_row, start_col) ||
-        check_diag(start_row, start_col) ||
-        find_win(start_row+1, start_col) ||
-        find_win(start_row, start_col+1)
+    self.rows.times do |i|
+      self.columns.times do |j|
+
+        winner = check_horizontal(i, j) ||
+            check_vertical(i, j) ||
+            check_diag(i, j)
+
+        return winner unless winner == nil
+      end
+    end
+
+    winner
   end
 
   def check_horizontal(start_row, start_col)
