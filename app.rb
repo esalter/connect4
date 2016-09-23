@@ -4,6 +4,7 @@ require 'sinatra/param'
 require 'sinatra/json'
 require 'sinatra/activerecord'
 
+require './lib/scorer'
 require './models/game'
 require './models/move'
 

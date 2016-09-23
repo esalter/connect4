@@ -58,6 +58,31 @@ class Game < ActiveRecord::Base
     column
   end
 
+  def score
+    # attempts to score the current position of the board
+    # human points (favorable positions for player 1) are positive
+    # bot points (favorable positions for player 2) are negative
+    # 10000 (-10000) points for a win condition board
+    # other good positions, like having runs of 3 or even 2, are also given corresponding weights.
+    scorer = Scorer.new(@state, self.rows, self.columns)
+    player_wins = scorer.check_runs(1, 4)
+    player_strong = scorer.check_runs(1, 3)
+    player_established = scorer.check_runs(1, 2)
+    bot_wins = scorer.check_runs(2, 4)
+    bot_strong = scorer.check_runs(2, 3)
+
+    if bot_wins > 0
+        -10000
+    else
+        (player_wins * 10000) + (player_strong * 100) + player_established - (bot_strong * 100)
+    end
+  end
+
+  def column_full?(index)
+    column = get_column(index)
+    column[self.rows-1] != ''
+  end
+
   def to_json(options = {})
     # we keep the state in a "reversed" manner (bottom-up) to keep things a bit easier to calculate
     # but we don't want to expose that to the consuming code which expects left-right top-down
@@ -68,11 +93,12 @@ class Game < ActiveRecord::Base
   @winner = nil
   def winner
     if @winner == nil
+      scorer = Scorer.new(@state, self.rows, self.columns)
       time = Benchmark.measure do
-        @winner = find_win
+        @winner = scorer.find_win[:player]
       end
 
-      puts "Found result of game in #{time}"
+      #puts "Found result of game in #{time}, winner: #{@winner}"
     end
 
     @winner
@@ -80,79 +106,6 @@ class Game < ActiveRecord::Base
 
   protected
   @initialized = false
-  def find_win
-    winner = nil
-
-    # check win conditions, then recursion.
-    self.rows.times do |i|
-      self.columns.times do |j|
-
-        winner = check_horizontal(i, j) ||
-            check_vertical(i, j) ||
-            check_diag(i, j)
-
-        return winner unless winner == nil
-      end
-    end
-
-    winner
-  end
-
-  def check_horizontal(start_row, start_col)
-    if start_col <= self.columns - 4 &&
-        @state[start_row][start_col] != '' &&
-            @state[start_row][start_col] == @state[start_row][start_col+1] &&
-            @state[start_row][start_col] == @state[start_row][start_col+2] &&
-            @state[start_row][start_col] == @state[start_row][start_col+3]
-
-        puts "found match at row #{start_row}, col #{start_col}"
-        return @state[start_row][start_col]
-    end
-
-    nil
-  end
-
-  def check_vertical(start_row, start_col)
-    if start_row <= self.rows - 4 &&
-        @state[start_row][start_col] != '' &&
-        @state[start_row][start_col] == @state[start_row+1][start_col] &&
-        @state[start_row][start_col] == @state[start_row+2][start_col] &&
-        @state[start_row][start_col] == @state[start_row+3][start_col]
-
-      puts "found match at row #{start_row}, col #{start_col}"
-      return @state[start_row][start_col]
-    end
-
-    nil
-  end
-
-  def check_diag(start_row, start_col)
-    if start_row <= self.rows - 4 &&
-        start_col <= self.columns - 4
-
-      # check lower-left - upper-right diag
-      if @state[start_row][start_col] != '' &&
-            @state[start_row][start_col] == @state[start_row+1][start_col+1] &&
-            @state[start_row][start_col] == @state[start_row+2][start_col+2] &&
-            @state[start_row][start_col] == @state[start_row+3][start_col+3]
-
-        puts "found match at row #{start_row}, col #{start_col}"
-        return @state[start_row][start_col]
-      end
-
-      # check upper-left - lower-right diag
-      if @state[start_row+3][start_col] != '' &&
-          @state[start_row+3][start_col] == @state[start_row+2][start_col+1] &&
-          @state[start_row+3][start_col] == @state[start_row+1][start_col+2] &&
-          @state[start_row+3][start_col] == @state[start_row][start_col+3]
-
-        puts "found match at row #{start_row}, col #{start_col}"
-        return @state[start_row+3][start_col]
-      end
-    end
-
-    nil
-  end
 
   def create_state_data
 
