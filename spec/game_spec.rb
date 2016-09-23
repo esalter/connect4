@@ -7,7 +7,8 @@ describe 'GameState' do
   end
 
   it 'alternates play on legal move' do
-    game = GameState.new(6, 7)
+    allow(Move).to receive(:create) { }
+    game = Game.new(rows: 6, columns:7, difficulty: 'easy', first_player: 1)
     expect(game.current_player).to eq(1)
     game.place_token(1, 3)
     expect(game.current_player).to eq(2)
@@ -15,7 +16,8 @@ describe 'GameState' do
   end
 
   it 'does not allow a player to play if it is not their move' do
-    game = GameState.new(6, 7)
+    allow(Move).to receive(:create) { }
+    game = Game.new(rows: 6, columns:7, difficulty: 'easy', first_player: 1)
     expect(game.current_player).to eq(1)
     game.place_token(1, 3)
     expect(game.current_player).to eq(2)
@@ -25,7 +27,8 @@ describe 'GameState' do
   end
 
   it 'cannot fill column past top' do
-    game = GameState.new(6, 7)
+    allow(Move).to receive(:create) { }
+    game = Game.new(rows: 6, columns:7, difficulty: 'easy', first_player: 1)
     game.place_token(1, 3)
     game.place_token(2, 3)
     game.place_token(1, 3)

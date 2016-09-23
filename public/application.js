@@ -18,6 +18,13 @@ function populateGame(data) {
             });
             table.append(tr);
         });
+
+        if (data.winner) {
+            // delay a tiny bit so the board has a chance to draw before displaying the alert.
+            setTimeout(function() {
+                alert('Player ' + data.winner + ' won!');
+            }, 100);
+        }
     }
 }
 

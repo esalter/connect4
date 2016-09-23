@@ -1,3 +1,5 @@
+require 'benchmark'
+
 class Game < ActiveRecord::Base
   has_many :moves, -> { order(:id) }
   after_initialize :create_state_data
@@ -8,18 +10,21 @@ class Game < ActiveRecord::Base
   # useful if we are loading from the db and just want to
   # reconstruct the game
   def place_token(player, column, update_db = true)
-    if player == current_player
-      # find the first free slot.
-      row = 0
-      begin
-        if @state[row][column] == ''
-          @state[row][column] = player
-          create_move player, column if update_db
-          set_next_player
-          return true
-        end
-        row += 1
-      end until row >= self.rows
+    # ensure a winner hasn't been found yet
+    if @winner == nil
+      if player == current_player
+        # find the first free slot.
+        row = 0
+        begin
+          if @state[row][column] == ''
+            @state[row][column] = player
+            create_move player, column if update_db
+            set_next_player
+            return true
+          end
+          row += 1
+        end until row >= self.rows
+      end
     end
 
     false
@@ -55,11 +60,102 @@ class Game < ActiveRecord::Base
     # we keep the state in a "reversed" manner (bottom-up) to keep things a bit easier to calculate
     # but we don't want to expose that to the consuming code which expects left-right top-down
     # interpretation.
-    JSON.pretty_generate({state: @state.reverse, game_id: self.id}, options)
+    JSON.pretty_generate({state: @state.reverse, game_id: self.id, winner: winner}, options)
+  end
+
+  @winner = nil
+  def winner
+    if @winner == nil
+      time = Benchmark.measure do
+        @winner = find_win(0, 0)
+      end
+
+      puts "Found result of game (win or lose) in #{time}"
+    end
+
+    @winner
   end
 
   protected
   @initialized = false
+  def find_win(start_row, start_col)
+    puts "Testing point: #{start_row}, #{start_col}"
+    # have we reached the end of the columns
+    # checking horizontal win conditions
+    if start_col >= self.columns
+      return nil
+    end
+
+    # have we reached the end of the rows
+    # checking vertical win conditions
+    if start_row >= self.rows
+      return nil
+    end
+
+    # check win conditions, then recursion.
+    check_horizontal(start_row, start_col) ||
+        check_vertical(start_row, start_col) ||
+        check_diag(start_row, start_col) ||
+        find_win(start_row+1, start_col) ||
+        find_win(start_row, start_col+1)
+  end
+
+  def check_horizontal(start_row, start_col)
+    if start_col <= self.columns - 4 &&
+        @state[start_row][start_col] != '' &&
+            @state[start_row][start_col] == @state[start_row][start_col+1] &&
+            @state[start_row][start_col] == @state[start_row][start_col+2] &&
+            @state[start_row][start_col] == @state[start_row][start_col+3]
+
+        puts "found match at row #{start_row}, col #{start_col}"
+        return @state[start_row][start_col]
+    end
+
+    nil
+  end
+
+  def check_vertical(start_row, start_col)
+    if start_row <= self.rows - 4 &&
+        @state[start_row][start_col] != '' &&
+        @state[start_row][start_col] == @state[start_row+1][start_col] &&
+        @state[start_row][start_col] == @state[start_row+2][start_col] &&
+        @state[start_row][start_col] == @state[start_row+3][start_col]
+
+      puts "found match at row #{start_row}, col #{start_col}"
+      return @state[start_row][start_col]
+    end
+
+    nil
+  end
+
+  def check_diag(start_row, start_col)
+    if start_row <= self.rows - 4 &&
+        start_col <= self.columns - 4
+
+      # check lower-left - upper-right diag
+      if @state[start_row][start_col] != '' &&
+            @state[start_row][start_col] == @state[start_row+1][start_col+1] &&
+            @state[start_row][start_col] == @state[start_row+2][start_col+2] &&
+            @state[start_row][start_col] == @state[start_row+3][start_col+3]
+
+        puts "found match at row #{start_row}, col #{start_col}"
+        return @state[start_row][start_col]
+      end
+
+      # check upper-left - lower-right diag
+      if @state[start_row+3][start_col] != '' &&
+          @state[start_row+3][start_col] == @state[start_row+2][start_col+1] &&
+          @state[start_row+3][start_col] == @state[start_row+1][start_col+2] &&
+          @state[start_row+3][start_col] == @state[start_row][start_col+3]
+
+        puts "found match at row #{start_row}, col #{start_col}"
+        return @state[start_row+3][start_col]
+      end
+    end
+
+    nil
+  end
+
   def create_state_data
 
     # since after_find happens before after_initialization, and we need to cover
