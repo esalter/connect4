@@ -5,6 +5,18 @@ class Game < ActiveRecord::Base
   after_initialize :create_state_data
   after_find :recreate_state
 
+  def initialize_copy(orig)
+    super
+    @state = JSON.parse(orig.to_json)['state'].reverse
+    @winner = nil # force recalc
+  end
+
+  def bot_move
+    result = @ai.get_best(self, 2)
+    puts result
+    place_token 2, result[:column]
+  end
+
   # sets a token in the game board.  if update_db is true,
   # then also create the move in the db.
   # useful if we are loading from the db and just want to
@@ -58,18 +70,19 @@ class Game < ActiveRecord::Base
     column
   end
 
-  def score
+  def score(player)
     # attempts to score the current position of the board
     # human points (favorable positions for player 1) are positive
     # bot points (favorable positions for player 2) are negative
     # 10000 (-10000) points for a win condition board
     # other good positions, like having runs of 3 or even 2, are also given corresponding weights.
+    opposing_player = player == 1 ? 2 : 1
     scorer = Scorer.new(@state, self.rows, self.columns)
-    player_wins = scorer.check_runs(1, 4)
-    player_strong = scorer.check_runs(1, 3)
-    player_established = scorer.check_runs(1, 2)
-    bot_wins = scorer.check_runs(2, 4)
-    bot_strong = scorer.check_runs(2, 3)
+    player_wins = scorer.check_runs(player, 4)
+    player_strong = scorer.check_runs(player, 3)
+    player_established = scorer.check_runs(player, 2)
+    bot_wins = scorer.check_runs(opposing_player, 4)
+    bot_strong = scorer.check_runs(opposing_player, 3)
 
     if bot_wins > 0
         -10000
@@ -97,8 +110,6 @@ class Game < ActiveRecord::Base
       time = Benchmark.measure do
         @winner = scorer.find_win[:player]
       end
-
-      #puts "Found result of game in #{time}, winner: #{@winner}"
     end
 
     @winner
@@ -123,6 +134,16 @@ class Game < ActiveRecord::Base
           @state[i].push(val)
         end
       end
+
+      level = case self.difficulty
+        when 'easy'
+          1
+        when 'hard'
+          3
+        else 0
+      end
+
+      @ai = MiniMax.new(level)
 
       @initialized = true
     end

@@ -5,6 +5,7 @@ require 'sinatra/json'
 require 'sinatra/activerecord'
 
 require './lib/scorer'
+require './lib/mini_max'
 require './models/game'
 require './models/move'
 
@@ -46,7 +47,8 @@ class Connect4 < Sinatra::Base
 
     game = Game.create(params)
 
-    game.place_token(2, 3) unless params[:first_player] == 1
+    # hard-code the best opening move to help the AI along.
+    game.place_token(2, params[:columns]/2) unless params[:first_player] == 1
     json game
   end
 
@@ -65,18 +67,7 @@ class Connect4 < Sinatra::Base
         # to try to make an illegal move (if a column is full)
         # in that case, nothing will happen, and the game will
         # stall because it won't retry at the moment.
-        case game.difficulty
-          when 'random'
-            game.place_token 2, rand(1...7)
-          when 'easy'
-            game.place_token 2, 1
-          when 'hard'
-            game.place_token 2, 3
-          else
-            status 400
-            json "errors": "unknown difficulty: " + game.difficulty
-            return
-        end
+        game.bot_move
       end
 
       json game
