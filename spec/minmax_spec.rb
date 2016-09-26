@@ -44,7 +44,7 @@ describe 'MinMax spec' do
   it 'it picks the winning move from a run of 3 - hard, take 2' do
     allow(Move).to receive(:create) { }
     game = Game.new(rows:6,columns:7,difficulty:'hard', first_player: 2)
-    minmax = MiniMax.new(6)
+    minmax = MiniMax.new(4)
     game.place_token(2, 3)
     game.place_token(1, 6)
     game.place_token(2, 0)

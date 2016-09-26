@@ -40,7 +40,7 @@ class Connect4 < Sinatra::Base
   end
 
   post '/game' do
-    param :difficulty, String, in: ["easy", "hard", "random"], transform: :downcase, default: "easy"
+    param :difficulty, String, in: ["easy", "hard"], transform: :downcase, default: "easy"
     param :first_player, Integer, default: true
     param :rows, Integer, default: 6
     param :columns, Integer, default: 7

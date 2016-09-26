@@ -143,9 +143,9 @@ class Game < ActiveRecord::Base
 
       level = case self.difficulty
         when 'easy'
-          4
+          2
         when 'hard'
-          6
+          4
         else 2
       end
 
