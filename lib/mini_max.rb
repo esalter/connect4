@@ -4,55 +4,56 @@ class MiniMax
     @max_depth = max_depth
   end
 
-  def get_best(game, player)
-    start_depth = @max_depth
-    moves = []
-    (0..game.columns-1).each do |i|
-      unless game.column_full?(i)
-        new_game = game.clone
-        new_game.place_token(player, i, false)
-        score = search(start_depth - 1, new_game, player == 1 ? 2 : 1) * -1
-        moves.push({ score: score, column: i })
-      end
-    end
-
-    best_score = -99999999
-    best_move = nil
-    moves.shuffle.each do |item|
-      if item[:score] > best_score
-        best_score = item[:score]
-        best_move = item[:column]
-      end
-    end
-
-    { column: best_move, score: best_score }
+  def finished?(score, game, depth)
+    depth <= 0 or game.full? or game.winner != nil or (score >= 10000 or score <= -10000)
   end
 
-  def search(depth, game, player)
-    moves = []
+  def get_best (game, player)
+    maximize(@max_depth, game, player, -999999, 999999)
+  end
+
+  def maximize(depth, game, player, alpha, beta)
+    score = game.score
+
+    return { score: score, column: nil } if finished?(score, game, depth)
+    result = {column: nil, score: -99999999}
+
     (0..game.columns-1).each do |i|
-
-      unless game.column_full?(i)
-        new_game = game.clone
-        new_game.place_token(player, i, false)
-        moves.push(new_game)
+      new_game = game.clone
+      if new_game.place_token(player, i, false)
+        proposed_move = self.minimize(depth - 1, new_game, player == 1 ? 2 : 1, alpha, beta)
+        if result[:column] == nil || proposed_move[:score] > result[:score]
+          result[:column] = i
+          result[:score] = alpha = proposed_move[:score]
+        end
       end
+
+      short_circuit = alpha >= beta
+      return result if short_circuit
     end
 
-    if depth <= 0 or moves.length == 0 or game.winner != nil
-      score = game.score(player)
-      return score
-    end
+    result
+  end
 
-    score = -99999999
-    moves.each do |child_game|
-      unless child_game == nil
-        searched_score = self.search(depth-1, child_game, player == 1 ? 2 : 1)
-        reversed_score = searched_score * -1
-        score = [score, reversed_score].max
+  def minimize(depth, game, player, alpha, beta)
+    score = game.score
+
+    return { score: score, column: nil } if finished?(score, game, depth)
+    result = { column: nil, score: 99999999 }
+    (0..game.columns-1).each do |i|
+      new_game = game.clone
+      if new_game.place_token(player, i, false)
+        proposed_move = self.maximize(depth - 1, new_game, player == 1 ? 2 : 1, alpha, beta)
+        if result[:column] == nil || proposed_move[:score] < result[:score]
+          result[:column] = i
+          result[:score] = beta = proposed_move[:score]
+        end
       end
+
+      short_circuit = alpha >= beta
+      return result if short_circuit
     end
 
-    score
+    result
   end
 end

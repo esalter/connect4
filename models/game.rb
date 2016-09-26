@@ -13,7 +13,6 @@ class Game < ActiveRecord::Base
 
   def bot_move
     result = @ai.get_best(self, 2)
-    puts result
     place_token 2, result[:column]
   end
 
@@ -70,25 +69,32 @@ class Game < ActiveRecord::Base
     column
   end
 
-  def score(player)
+  def score
     # attempts to score the current position of the board
-    # human points (favorable positions for player 1) are positive
-    # bot points (favorable positions for player 2) are negative
+    # human points (favorable positions for player 1) are negative
+    # bot points (favorable positions for player 2) are positive
     # 10000 (-10000) points for a win condition board
     # other good positions, like having runs of 3 or even 2, are also given corresponding weights.
-    opposing_player = player == 1 ? 2 : 1
     scorer = Scorer.new(@state, self.rows, self.columns)
-    player_wins = scorer.check_runs(player, 4)
-    player_strong = scorer.check_runs(player, 3)
-    player_established = scorer.check_runs(player, 2)
-    bot_wins = scorer.check_runs(opposing_player, 4)
-    bot_strong = scorer.check_runs(opposing_player, 3)
+    player_wins = scorer.check_runs(1, 4)
+    player_strong = scorer.check_runs(1, 3)
+    player_established = scorer.check_runs(1, 2)
+    bot_wins = scorer.check_runs(2, 4)
+    bot_strong = scorer.check_runs(2, 3)
 
     if bot_wins > 0
-        -10000
+        10000
     else
-        (player_wins * 10000) + (player_strong * 100) + player_established - (bot_strong * 100)
+        (player_wins * -10000) + (player_strong * -100) - player_established + (bot_strong * 100)
     end
+  end
+
+  def full?
+    (0..self.columns-1).each do |i|
+      return false unless column_full?(i)
+    end
+
+    true
   end
 
   def column_full?(index)
@@ -137,10 +143,10 @@ class Game < ActiveRecord::Base
 
       level = case self.difficulty
         when 'easy'
-          1
+          4
         when 'hard'
-          3
-        else 0
+          6
+        else 2
       end
 
       @ai = MiniMax.new(level)

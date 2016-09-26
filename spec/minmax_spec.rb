@@ -1,26 +1,6 @@
 require 'rspec'
 
 describe 'MinMax spec' do
-  it 'initial state with max depth 0 will always return score 0 and column 3' do
-    allow(Move).to receive(:create) { }
-    minmax = MiniMax.new(0)
-    game = Game.new(rows:6, columns:7, difficulty:'easy', first_player: 2)
-    result = minmax.get_best(game, 2)
-
-    expect(result[:score]).to eq(0)
-    expect(result[:column]).to eq(3)
-  end
-
-  it 'letting it choose will pick the first available column all other things equal' do
-    allow(Move).to receive(:create) { }
-    minmax = MiniMax.new(1)
-    game = Game.new(rows:6, columns:7, difficulty:'easy', first_player: 2)
-    result = minmax.get_best(game, 2)
-
-    expect(result[:score]).to eq(0)
-    expect(result[:column]).to eq(1)
-  end
-
   it 'it picks the winning move from a run of 3' do
     allow(Move).to receive(:create) { }
     game = Game.new(rows:6,columns:7,difficulty:'easy', first_player: 1)
@@ -35,6 +15,68 @@ describe 'MinMax spec' do
     minmax = MiniMax.new(2)
     result = minmax.get_best(game, 2)
     expect(result[:column]).to eq(5)
+  end
+
+  it 'it picks the winning move from a run of 3 - easy, take 2' do
+    allow(Move).to receive(:create) { }
+    game = Game.new(rows:6,columns:7,difficulty:'easy', first_player: 2)
+    minmax = MiniMax.new(2)
+    game.place_token(2, 3)
+    game.place_token(1, 6)
+    game.place_token(2, 0)
+    game.place_token(1, 6)
+    game.place_token(2, 0)
+    game.place_token(1, 6)
+
+    # it needs to block the next move
+    result = minmax.get_best(game, 2)
+    expect(result[:column]).to eq(6)
+
+    game.place_token(2, 6)
+    game.place_token(1, 6)
+    game.place_token(2, 0)
+    game.place_token(1, 6)
+
+    result = minmax.get_best(game, 2)
+    expect(result[:column]).to eq(0)
+  end
+
+  it 'it picks the winning move from a run of 3 - hard, take 2' do
+    allow(Move).to receive(:create) { }
+    game = Game.new(rows:6,columns:7,difficulty:'hard', first_player: 2)
+    minmax = MiniMax.new(6)
+    game.place_token(2, 3)
+    game.place_token(1, 6)
+    game.place_token(2, 0)
+    game.place_token(1, 6)
+    game.place_token(2, 0)
+    game.place_token(1, 6)
+
+    # it needs to block the next move
+    result = minmax.get_best(game, 2)
+    expect(result[:column]).to eq(6)
+
+    game.place_token(2, 6)
+    game.place_token(1, 6)
+    game.place_token(2, 0)
+    game.place_token(1, 6)
+
+    result = minmax.get_best(game, 2)
+    expect(result[:column]).to eq(0)
+  end
+
+  it 'it blocks a sure win' do
+    allow(Move).to receive(:create) { }
+    game = Game.new(rows:6,columns:7, difficulty:'easy', first_player: 1)
+    game.place_token(1, 0)
+    game.place_token(2, 5)
+    game.place_token(1, 0)
+    game.place_token(2, 5)
+    game.place_token(1, 0)
+
+    minmax = MiniMax.new(2)
+    result = minmax.get_best(game, 2)
+    expect(result[:column]).to eq(0)
   end
 
   it 'it picks the winning move from an almost full board' do
@@ -111,11 +153,5 @@ describe 'MinMax spec' do
     minmax = MiniMax.new(1)
     result = minmax.get_best(game, 2)
     expect(result[:column]).to eq(1)
-
-    # if we make the move, the game state should be -10000 for the player, 10000 for the bot
-    game.place_token(2, 1)
-
-    expect(game.score(2)).to be >= 10000
-    expect(game.score(1)).to eq(-10000)
   end
 end
